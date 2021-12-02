@@ -43,3 +43,5 @@ def test_depth_commands_result_in_correct_depth(movement_commands, expected_dept
 
     boat.move(movement_commands)
     assert boat.depth == expected_depth
+
+
