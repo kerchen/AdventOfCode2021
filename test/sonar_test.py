@@ -19,7 +19,7 @@ increase_count_test_data = [
 def test_number_of_increases_is_correct(depth_readings, expected_increase):
     stats = sonar.get_depth_stats(depth_readings)
 
-    assert(stats.increase_count == expected_increase)
+    assert stats.increase_count == expected_increase
 
 
 sliding_window_count_test_data = [
@@ -38,4 +38,4 @@ sliding_window_count_test_data = [
 def test_number_of_increases_is_correct_with_sliding_window(depth_readings, expected_increase):
     stats = sonar.get_depth_stats(depth_readings, 3)
 
-    assert(stats.increase_count == expected_increase)
+    assert stats.increase_count == expected_increase
