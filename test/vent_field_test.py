@@ -16,8 +16,9 @@ example_line_data = [
 ]
 
 parse_line_start_test_data = [
-    ("0,0 -> 0,1",
-     Point(0, 0))
+    ("0,0 -> 0,1", Point(0, 0)),
+    ("2,3 -> 0,1", Point(2, 3)),
+    ("11,93 -> 0,1", Point(11, 93))
 ]
 
 
@@ -25,4 +26,17 @@ parse_line_start_test_data = [
 def test_line_data_parsing_start_point(line_points, expected_start):
     plume_line = PlumeLine(line_points)
     assert plume_line.start == expected_start
+
+
+parse_line_end_test_data = [
+    ("0,0 -> 0,1", Point(0, 1)),
+    ("0,0 -> 2,3", Point(2, 3)),
+    ("0,0 -> 11,93", Point(11, 93))
+]
+
+
+@pytest.mark.parametrize("line_points, expected_end", parse_line_end_test_data)
+def test_line_data_parsing_end_point(line_points, expected_end):
+    plume_line = PlumeLine(line_points)
+    assert plume_line.end == expected_end
 
