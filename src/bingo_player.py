@@ -7,7 +7,7 @@ class BingoPlayer:
         for b in boards:
             self.boards.append(BingoBoard(b))
 
-    def play_boards(self, called_numbers: str) -> int:
+    def play_boards(self, called_numbers: str) -> tuple:
         first_winning_board = -1
         last_winning_board = -1
         already_won = set()
