@@ -1,6 +1,6 @@
 import pytest
 
-from syntax import is_corrupt, get_corruption_score
+from syntax import is_corrupt, get_corruption_score, complete_line, compute_completion_score
 
 
 corrupt_line_test_data = [
@@ -52,3 +52,42 @@ def test_corrupt_line_score_is_correct(input_line, expected_score):
     corrupt, stop_char = is_corrupt(input_line)
     score = get_corruption_score(stop_char)
     assert score == expected_score
+
+
+completion_test_data = [
+    ("(", ")"),
+    ("<", ">"),
+    ("{<>", "}"),
+    ("[({(<(())[]>[[{[]{<()<>>", "}}]])})]"),
+    ("[(()[<>])]({[<{<<[]>>(", ")}>]})"),
+    ("(((({<>}<{<{<>}{[]{[]{}", "}}>}>))))"),
+    ("{<[[]]>}<{[{[{[]{()[[[]", "]]}}]}]}>"),
+    ("<{([{{}}[<[[[<>{}]]]>[]]", "])}>")
+]
+
+
+@pytest.mark.parametrize("input_line, expected_completion", completion_test_data)
+def test_completion_matches_unmatched_delimiters(input_line, expected_completion):
+    completion = complete_line(input_line)
+    assert completion == expected_completion
+
+
+completion_score_test_data = [
+    (")", 1),
+    (">", 4),
+    ("}", 3),
+    ("}}", 18),
+    (")>}]", 242),
+    ("}}]])})]", 288957),
+    (")}>]})", 5566),
+    ("}}>}>))))", 1480781),
+    ("]]}}]}]}>", 995444),
+    ("])}>", 294)
+]
+
+
+@pytest.mark.parametrize("input_line, expected_score", completion_score_test_data)
+def test_completion_score_is_computed_correctly(input_line, expected_score):
+    score = compute_completion_score(input_line)
+    assert score == expected_score
+
