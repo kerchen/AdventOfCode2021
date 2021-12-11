@@ -56,3 +56,11 @@ def solve(input_data_file: str):
 
         g = Octogrid(starting_energy)
         print(f"Flashes after 100 steps: {g.step_time(100)}")
+
+        g2 = Octogrid(starting_energy)
+        t = 0
+        while(True):
+            t += 1
+            if 100 == g2.step_time(1):
+                print(f"First simultaneous flash at time {t}")
+                break
