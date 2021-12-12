@@ -24,6 +24,8 @@ class CaveSystem:
         def can_extend(cave, path):
             if cave not in path:
                 return True
+            if cave.isupper():
+                return True
             return False
 
         def follow_path(cave: str, path: list, found_paths) -> bool:
@@ -41,3 +43,14 @@ class CaveSystem:
 
         follow_path('start', current_path, all_paths)
         return all_paths
+
+
+def solve(input_data_file: str):
+    with open(input_data_file, "r") as dfile:
+        connections = []
+        for line in dfile:
+            connections.append(line.strip())
+
+        cave_system = CaveSystem(connections)
+        all_paths = cave_system.find_all_paths()
+        print(f"Number of paths: {len(all_paths)}")
