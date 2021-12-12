@@ -1,5 +1,4 @@
 
-
 class CaveSystem:
     def __init__(self, connections: list):
         self.nodes = dict()
@@ -17,7 +16,7 @@ class CaveSystem:
     def are_directly_connected(self, a_node: str, b_node: str) -> bool:
         return b_node in self.nodes[a_node]
 
-    def find_all_paths(self):
+    def find_all_paths(self, relaxed_reentry: bool=False):
         all_paths = []
         current_path = []
 
@@ -26,9 +25,14 @@ class CaveSystem:
                 return True
             if cave.isupper():
                 return True
+            if relaxed_reentry:
+                if not cave == 'start':
+                    lower_entries = filter(lambda c: c.islower(), path)
+                    if not any(path.count(node) > 1 for node in lower_entries):
+                        return True
             return False
 
-        def follow_path(cave: str, path: list, found_paths) -> bool:
+        def follow_path(cave: str, path: list, found_paths):
             if not can_extend(cave, path):
                 return
 
@@ -52,5 +56,7 @@ def solve(input_data_file: str):
             connections.append(line.strip())
 
         cave_system = CaveSystem(connections)
-        all_paths = cave_system.find_all_paths()
+        all_paths = cave_system.find_all_paths(False)
         print(f"Number of paths: {len(all_paths)}")
+        all_paths = cave_system.find_all_paths(True)
+        print(f"Number of paths with relaxed restrictions: {len(all_paths)}")
