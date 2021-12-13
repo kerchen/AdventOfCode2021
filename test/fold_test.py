@@ -45,18 +45,21 @@ fold_test_data = [
 ''',
      [Point(1, 0), Point(4, 5)]
      ),
+
     ('''1,0
 4,5
 
 fold along y=3''',
      [Point(1, 0), Point(4, 1)]
      ),
+
     ('''1,0
 1,6
 
 fold along y=3''',
      [Point(1, 0)]
      ),
+
     ('''1,0
 4,1
 
@@ -124,6 +127,34 @@ fold along x=5''',
          Point(0, 3), Point(4, 3),
          Point(0, 4), Point(1, 4), Point(2, 4), Point(3, 4), Point(4, 4)]
     ),
+
+    ('''6,10
+0,14
+9,10
+0,3
+10,4
+4,11
+6,0
+6,12
+4,1
+0,13
+10,12
+3,4
+3,0
+8,4
+1,10
+2,14
+8,10
+9,0
+
+fold along y=7
+fold along x=5''',
+     [Point(0, 0), Point(1, 0), Point(2, 0), Point(3, 0), Point(4, 0),
+      Point(0, 1), Point(4, 1),
+      Point(0, 2), Point(4, 2),
+      Point(0, 3), Point(4, 3),
+      Point(0, 4), Point(1, 4), Point(2, 4), Point(3, 4), Point(4, 4)]
+     ),
 ]
 
 
