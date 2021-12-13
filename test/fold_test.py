@@ -98,6 +98,32 @@ fold along y=7''',
       Point(6, 2), Point(10, 2),
       Point(0, 3), Point(4, 3),
       Point(1, 4), Point(3, 4), Point(6, 4), Point(8, 4), Point(9, 4), Point(10, 4)]),
+    (
+'''0, 0
+2, 0
+3, 0
+6, 0
+9, 0
+0, 1
+4, 1
+6, 2
+10, 2
+0, 3
+4, 3
+1, 4
+3, 4
+6, 4
+8, 4
+9, 4
+10, 4
+
+fold along x=5''',
+        [Point(0, 0), Point(1, 0), Point(2, 0), Point(3, 0), Point(4, 0),
+         Point(0, 1), Point(4, 1),
+         Point(0, 2), Point(4, 2),
+         Point(0, 3), Point(4, 3),
+         Point(0, 4), Point(1, 4), Point(2, 4), Point(3, 4), Point(4, 4)]
+    ),
 ]
 
 

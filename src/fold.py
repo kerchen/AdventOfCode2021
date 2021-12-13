@@ -60,15 +60,20 @@ class Paper:
             self.page[new_dot] = True
 
     def fold_along_x(self, coord):
+        new_dots = set()
         for dot in list(self.page.keys()):
             if dot.x > coord:
-                del self.page[dot]
+                if dot not in new_dots:
+                    del self.page[dot]
                 new_dot = Point(dot.x - coord - 1, dot.y)
                 self.page[new_dot] = True
+                new_dots.add(new_dot)
             else:
-                del self.page[dot]
+                if dot not in new_dots:
+                    del self.page[dot]
                 new_dot = Point(coord - dot.x - 1, dot.y)
                 self.page[new_dot] = True
+                new_dots.add(new_dot)
 
 
 def solve(input_data_file: str):
@@ -76,5 +81,6 @@ def solve(input_data_file: str):
         dots, folds = parse_instructions(dfile.read())
 
         paper = Paper(dots)
+        print(f"Visible dots before any folding: {len(paper.page)}")
         paper.fold(folds[:1])
         print(f"Visible dots after one fold: {len(paper.page)}")
