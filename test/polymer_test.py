@@ -166,7 +166,7 @@ multiple_rounds_element_count_test_data = [
      ),
 
     (example_input,
-     10, {'B': 1749, 'C': 298, 'H': 161, 'N': 865 }
+     10, {'B': 1749, 'C': 298, 'H': 161, 'N': 865}
      ),
 
 ]

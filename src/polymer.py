@@ -35,9 +35,20 @@ def solve(input_data_file: str):
         start_sequence, insertions = parse_input(dfile.read())
 
         computed_sequence = start_sequence
+        last_counts = Counter(start_sequence)
+        print(f"Starting sequence counts: {Counter(last_counts)}")
         for r in range(10):
             computed_sequence = perform_insertions(computed_sequence, insertions)
-        counts = compute_component_counts(computed_sequence)
+            counts = compute_component_counts(computed_sequence)
+            print("  Count deltas: ", end='')
+            print(f" B: {counts['B'] - last_counts['B']}", end='')
+            print(f" C: {counts['C'] - last_counts['C']}", end='')
+            print(f" H: {counts['H'] - last_counts['H']}", end='')
+            print(f" N: {counts['N'] - last_counts['N']}")
+            print(f"After {r+1} steps, counts are: ", end='')
+            print(counts)
+            last_counts = counts
+
         min_count = len(computed_sequence)
         max_count = 0
         for k, v in counts.items():
