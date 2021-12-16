@@ -9,16 +9,6 @@ PACKET_HEADER_END_BIT = PACKET_TYPE_END_BIT
 LITERAL_VALUE_PACKET_TYPE_ID = 4
 
 
-class Error(BaseException):
-    pass
-
-
-class NotImplementedYetError(Error):
-    def __init__(self, expression, message):
-        self.expression = expression
-        self.message = message
-
-
 def hex_to_binary(hex_str: str) -> str:
     hex_binary_map = {'0': '0000',
                       '1': '0001',
@@ -52,29 +42,32 @@ def binary_to_int(binary_sequence: str) -> int:
 
 
 def get_packet_version(hex_sequence: str) -> int:
-    binary_sequence = hex_to_binary(hex_sequence)
+    return get_packet_version_from_binary(hex_to_binary(hex_sequence))
 
+
+def get_packet_version_from_binary(binary_sequence: str) -> int:
     return binary_to_int(binary_sequence[PACKET_VERSION_START_BIT:PACKET_VERSION_END_BIT+1])
 
 
 def get_packet_type(hex_sequence: str) -> int:
-    binary_sequence = hex_to_binary(hex_sequence)
+    return get_packet_type_from_binary(hex_to_binary(hex_sequence))
 
+
+def get_packet_type_from_binary(binary_sequence: str) -> int:
     return binary_to_int(binary_sequence[PACKET_TYPE_START_BIT:PACKET_TYPE_END_BIT+1])
 
 
 class Packet:
-    def __init__(self, hex_sequence: str):
-        self.version = get_packet_version(hex_sequence)
-        self.type = get_packet_type(hex_sequence)
+    def __init__(self, binary_sequence: str):
+        self.version = get_packet_version_from_binary(binary_sequence)
+        self.type = get_packet_type_from_binary(binary_sequence)
         self.bits_consumed = 0
 
 
 class LiteralValuePacket(Packet):
-    def __init__(self, hex_sequence: str):
-        super().__init__(hex_sequence)
+    def __init__(self, binary_sequence: str):
+        super().__init__(binary_sequence)
 
-        binary_sequence = hex_to_binary(hex_sequence)
         payload = ''
         bi = PACKET_HEADER_END_BIT + 1
         while bi < len(binary_sequence):
@@ -90,24 +83,33 @@ class LiteralValuePacket(Packet):
         self.value = binary_to_int(payload)
 
 
+def mode0_data_size(binary_sequence: str) -> tuple:
+    mode_bit = PACKET_HEADER_END_BIT + 1
+    mode0_bit_count = 15
+    mode0_start_data_bit = mode_bit + 1
+    mode0_end_data_bit = mode0_start_data_bit + mode0_bit_count
+    return binary_to_int(binary_sequence[mode0_start_data_bit:mode0_end_data_bit]), mode0_end_data_bit + 1
+
+
 class OperatorPacket(Packet):
-    def __init__(self, hex_sequence: str):
-        super().__init__(hex_sequence)
+    def __init__(self, binary_sequence: str):
+        super().__init__(binary_sequence)
         mode_bit = PACKET_HEADER_END_BIT + 1
-        mode0_bit_count = 15
-        mode0_start_data_bit = mode_bit + 1
-        mode0_end_data_bit = mode0_start_data_bit + mode0_bit_count
 
         self.subpacket_bit_count = 0
-        binary_sequence = hex_to_binary(hex_sequence)
+        self.subpackets = []
         if binary_sequence[mode_bit] == '0':
-            self.subpacket_bit_count = binary_to_int(binary_sequence[mode0_start_data_bit:mode0_end_data_bit])
+            self.subpacket_bit_count, next_bit = mode0_data_size(binary_sequence)
 
 
 def create_packet(hex_sequence: str) -> Packet:
-    packet_type = get_packet_type(hex_sequence)
+    return create_packet_from_binary(hex_to_binary(hex_sequence))
+
+
+def create_packet_from_binary(binary_sequence: str) -> Packet:
+    packet_type = get_packet_type_from_binary(binary_sequence)
 
     if packet_type == LITERAL_VALUE_PACKET_TYPE_ID:
-        return LiteralValuePacket(hex_sequence)
+        return LiteralValuePacket(binary_sequence)
     else:
-        return OperatorPacket(hex_sequence)
+        return OperatorPacket(binary_sequence)
