@@ -82,3 +82,16 @@ def test_correct_literal_value_is_computed(input_hex_sequence, expected_value):
     assert packet.type == 4
     literal_value = packet.value
     assert literal_value == expected_value
+
+
+operator_mode0_test_data = [
+    ('E40000', 0),
+    ('38006F45291200', 27)
+]
+
+
+@pytest.mark.parametrize("input_hex_sequence, expected_value", operator_mode0_test_data)
+def test_correct_bit_length_is_found_for_mode0_operator(input_hex_sequence, expected_value):
+    packet = create_packet(input_hex_sequence)
+
+    assert packet.subpacket_bit_count == expected_value

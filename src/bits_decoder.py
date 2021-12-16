@@ -1,9 +1,10 @@
 from math import ceil
 
 PACKET_VERSION_START_BIT = 0
-PACKET_VERSION_END_BIT = 2
-PACKET_TYPE_START_BIT = 3
-PACKET_TYPE_END_BIT = 5
+PACKET_VERSION_END_BIT = PACKET_VERSION_START_BIT + 2
+PACKET_TYPE_START_BIT = PACKET_VERSION_END_BIT + 1
+PACKET_TYPE_END_BIT = PACKET_TYPE_START_BIT + 2
+PACKET_HEADER_END_BIT = PACKET_TYPE_END_BIT
 
 LITERAL_VALUE_PACKET_TYPE_ID = 4
 
@@ -66,7 +67,7 @@ class Packet:
     def __init__(self, hex_sequence: str):
         self.version = get_packet_version(hex_sequence)
         self.type = get_packet_type(hex_sequence)
-        self.bytes_consumed = 0
+        self.bits_consumed = 0
 
 
 class LiteralValuePacket(Packet):
@@ -75,7 +76,7 @@ class LiteralValuePacket(Packet):
 
         binary_sequence = hex_to_binary(hex_sequence)
         payload = ''
-        bi = PACKET_TYPE_END_BIT + 1
+        bi = PACKET_HEADER_END_BIT + 1
         while bi < len(binary_sequence):
             if binary_sequence[bi] == '1':
                 payload = payload + binary_sequence[bi+1:bi+5]
@@ -85,8 +86,22 @@ class LiteralValuePacket(Packet):
                 bi += 5
                 break
 
-        self.bytes_consumed = ceil(bi/8)
+        self.bits_consumed = ceil(bi/8) * 8
         self.value = binary_to_int(payload)
+
+
+class OperatorPacket(Packet):
+    def __init__(self, hex_sequence: str):
+        super().__init__(hex_sequence)
+        mode_bit = PACKET_HEADER_END_BIT + 1
+        mode0_bit_count = 15
+        mode0_start_data_bit = mode_bit + 1
+        mode0_end_data_bit = mode0_start_data_bit + mode0_bit_count
+
+        self.subpacket_bit_count = 0
+        binary_sequence = hex_to_binary(hex_sequence)
+        if binary_sequence[mode_bit] == '0':
+            self.subpacket_bit_count = binary_to_int(binary_sequence[mode0_start_data_bit:mode0_end_data_bit])
 
 
 def create_packet(hex_sequence: str) -> Packet:
@@ -94,5 +109,5 @@ def create_packet(hex_sequence: str) -> Packet:
 
     if packet_type == LITERAL_VALUE_PACKET_TYPE_ID:
         return LiteralValuePacket(hex_sequence)
-
-    raise NotImplementedError("Unknown packet type")
+    else:
+        return OperatorPacket(hex_sequence)
