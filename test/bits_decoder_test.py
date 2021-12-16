@@ -1,6 +1,7 @@
 import pytest
 
-from bits_decoder import hex_to_binary, binary_to_int, get_packet_version, get_packet_type
+from bits_decoder import (hex_to_binary, binary_to_int, get_packet_version,
+                          get_packet_type, create_packet)
 
 
 hex_to_binary_conversion_test_data = [
@@ -64,3 +65,20 @@ def test_correct_packet_type_found(input_hex_sequence, expected_type):
     packet_type = get_packet_type(input_hex_sequence)
     assert packet_type == expected_type
 
+
+literal_value_test_data = [
+    ('3000', 0),
+    ('F210800', 0),
+    ('F00', 0),
+    ('F210830', 12),
+    ('121A924', 2601),
+    ('D2FE28', 2021)
+]
+
+
+@pytest.mark.parametrize("input_hex_sequence, expected_value", literal_value_test_data)
+def test_correct_literal_value_is_computed(input_hex_sequence, expected_value):
+    packet = create_packet(input_hex_sequence)
+    assert packet.type == 4
+    literal_value = packet.value
+    assert literal_value == expected_value
