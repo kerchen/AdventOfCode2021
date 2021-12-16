@@ -21,3 +21,23 @@ def hex_to_binary(hex_str: str) -> str:
         binary_sequence = binary_sequence + hex_binary_map[h]
 
     return binary_sequence
+
+
+def binary_to_int(binary_sequence: str) -> int:
+    return_value = 0
+    for bd in binary_sequence:
+        return_value *= 2
+        return_value += (1 if bd == '1' else 0)
+    return return_value
+
+
+def get_packet_version(hex_sequence: str) -> int:
+    binary_sequence = hex_to_binary(hex_sequence)
+
+    return binary_to_int(binary_sequence[0:3])
+
+
+def get_packet_type(hex_sequence: str) -> int:
+    binary_sequence = hex_to_binary(hex_sequence)
+
+    return binary_to_int(binary_sequence[3:6])
