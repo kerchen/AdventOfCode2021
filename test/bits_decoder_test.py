@@ -117,3 +117,9 @@ def test_correct_literal_values_are_parsed_from_mode0_operator_packet(input_hex_
 
     assert literal_values == expected_values
 
+
+def test_nested_mode0():
+    packet = create_packet('F40087D000BF10')
+
+    assert len(packet.subpackets) == 1
+    assert packet.subpackets[0].subpackets[0].value == 8

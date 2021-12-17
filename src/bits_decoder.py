@@ -99,6 +99,7 @@ class OperatorPacket(Packet):
         self.subpackets = []
         if binary_sequence[mode_bit] == '0':
             self.subpacket_bit_count, next_bit = mode0_data_size(binary_sequence[mode_bit+1:])
+            self.bits_consumed += self.subpacket_bit_count + next_bit
             bits_remaining = self.subpacket_bit_count
             while bits_remaining:
                 packet = create_packet_from_binary(binary_sequence[mode_bit+next_bit:])
