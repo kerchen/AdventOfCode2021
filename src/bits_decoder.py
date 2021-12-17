@@ -61,7 +61,7 @@ class Packet:
     def __init__(self, binary_sequence: str):
         self.version = get_packet_version_from_binary(binary_sequence)
         self.type = get_packet_type_from_binary(binary_sequence)
-        self.bits_consumed = 0
+        self.bits_consumed = 6
 
 
 class LiteralValuePacket(Packet):
@@ -69,7 +69,7 @@ class LiteralValuePacket(Packet):
         super().__init__(binary_sequence)
 
         payload = ''
-        bi = PACKET_HEADER_END_BIT + 1
+        bi = self.bits_consumed
         while bi < len(binary_sequence):
             if binary_sequence[bi] == '1':
                 payload = payload + binary_sequence[bi+1:bi+5]
@@ -79,14 +79,13 @@ class LiteralValuePacket(Packet):
                 bi += 5
                 break
 
-        self.bits_consumed = ceil(bi/8) * 8
+        self.bits_consumed = bi
         self.value = binary_to_int(payload)
 
 
 def mode0_data_size(binary_sequence: str) -> tuple:
-    mode_bit = PACKET_HEADER_END_BIT + 1
     mode0_bit_count = 15
-    mode0_start_data_bit = mode_bit + 1
+    mode0_start_data_bit = 0
     mode0_end_data_bit = mode0_start_data_bit + mode0_bit_count
     return binary_to_int(binary_sequence[mode0_start_data_bit:mode0_end_data_bit]), mode0_end_data_bit + 1
 
@@ -99,7 +98,13 @@ class OperatorPacket(Packet):
         self.subpacket_bit_count = 0
         self.subpackets = []
         if binary_sequence[mode_bit] == '0':
-            self.subpacket_bit_count, next_bit = mode0_data_size(binary_sequence)
+            self.subpacket_bit_count, next_bit = mode0_data_size(binary_sequence[mode_bit+1:])
+            bits_remaining = self.subpacket_bit_count
+            while bits_remaining:
+                packet = create_packet_from_binary(binary_sequence[mode_bit+next_bit:])
+                bits_remaining -= packet.bits_consumed
+                next_bit += packet.bits_consumed
+                self.subpackets.append(packet)
 
 
 def create_packet(hex_sequence: str) -> Packet:

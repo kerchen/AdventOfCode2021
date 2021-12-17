@@ -86,10 +86,10 @@ def test_correct_literal_value_is_computed(input_hex_sequence, expected_value):
 
 operator_mode0_test_data = [
     ('E40000', 0),
-    ('F4002BC6', 10),  # 1 literal w/value = 6
-    ('F4006BC3F323', 26),  # 2 literal values 6, 147
+    ('F4002FC30', 11),  # 1 literal value 6
+    ('F4006FC379918', 27),  # 2 literal values 6, 147
     ('38006F45291200', 27),  # 2 literal values 10, 21
-    ('F400BFC3F323F276', 47)  # 3 literal values 6, 147, 864
+    ('F400C3C37991F93B00', 48)  # 3 literal values 6, 147, 864
 ]
 
 
@@ -101,10 +101,10 @@ def test_correct_bit_length_is_found_for_mode0_operator(input_hex_sequence, expe
 
 
 operator_mode0_literals_test_data = [
-    ('F4002BC6', [6]),
-    ('F4006BC3F323', [6, 147]),
-    ('38006F45291200', [10, 21]),
-    ('F400BFC3F323F276', [6, 147, 864])
+    ('F4002FC30', [6]),
+    ('F4006FC379918', [6, 147]),
+    ('38006F45291200', [10, 20]),
+    ('F400C3C37991F93B00', [6, 147, 864])
 ]
 
 
