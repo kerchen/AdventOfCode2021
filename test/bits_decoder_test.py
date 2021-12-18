@@ -1,7 +1,7 @@
 import pytest
 
-from bits_decoder import (hex_to_binary, binary_to_int, get_packet_version,
-                          get_packet_type, create_packet)
+from bits_decoder import (LiteralValuePacket, hex_to_binary, binary_to_int,
+                          create_packet)
 
 
 hex_to_binary_conversion_test_data = [
@@ -38,34 +38,6 @@ def test_binary_to_int_conversion_works_correctly(input_binary_sequence, expecte
     assert value == expected_value
 
 
-packet_header_version_parsing_test_data = [
-    ('00', 0),
-    ('FF', 7),
-    ('21', 1),
-    ('CD', 6),
-]
-
-
-@pytest.mark.parametrize("input_hex_sequence, expected_version", packet_header_version_parsing_test_data)
-def test_correct_packet_version_found(input_hex_sequence, expected_version):
-    packet_version = get_packet_version(input_hex_sequence)
-    assert packet_version == expected_version
-
-
-packet_header_type_parsing_test_data = [
-    ('00', 0),
-    ('FF', 7),
-    ('21', 0),
-    ('CD', 3),
-]
-
-
-@pytest.mark.parametrize("input_hex_sequence, expected_type", packet_header_type_parsing_test_data)
-def test_correct_packet_type_found(input_hex_sequence, expected_type):
-    packet_type = get_packet_type(input_hex_sequence)
-    assert packet_type == expected_type
-
-
 literal_value_test_data = [
     ('3000', 0),
     ('F210800', 0),
@@ -79,7 +51,7 @@ literal_value_test_data = [
 @pytest.mark.parametrize("input_hex_sequence, expected_value", literal_value_test_data)
 def test_correct_literal_value_is_computed(input_hex_sequence, expected_value):
     packet = create_packet(input_hex_sequence)
-    assert packet.type == 4
+    assert isinstance(packet, LiteralValuePacket)
     literal_value = packet.value
     assert literal_value == expected_value
 

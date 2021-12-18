@@ -1,11 +1,5 @@
-from math import ceil
 
-PACKET_VERSION_START_BIT = 0
-PACKET_VERSION_END_BIT = PACKET_VERSION_START_BIT + 2
-PACKET_TYPE_START_BIT = PACKET_VERSION_END_BIT + 1
-PACKET_TYPE_END_BIT = PACKET_TYPE_START_BIT + 2
-PACKET_HEADER_END_BIT = PACKET_TYPE_END_BIT
-
+PACKET_HEADER_END_BIT = 5
 LITERAL_VALUE_PACKET_TYPE_ID = 4
 
 
@@ -41,32 +35,25 @@ def binary_to_int(binary_sequence: str) -> int:
     return return_value
 
 
-def get_packet_version(hex_sequence: str) -> int:
-    return get_packet_version_from_binary(hex_to_binary(hex_sequence))
+def get_packet_version(bit_iterator: iter) -> int:
+    binary_sequence = ''.join([b for i in range(3) for b in next(bit_iterator)])
+    return binary_to_int(binary_sequence)
 
 
-def get_packet_version_from_binary(binary_sequence: str) -> int:
-    return binary_to_int(binary_sequence[PACKET_VERSION_START_BIT:PACKET_VERSION_END_BIT+1])
-
-
-def get_packet_type(hex_sequence: str) -> int:
-    return get_packet_type_from_binary(hex_to_binary(hex_sequence))
-
-
-def get_packet_type_from_binary(binary_sequence: str) -> int:
-    return binary_to_int(binary_sequence[PACKET_TYPE_START_BIT:PACKET_TYPE_END_BIT+1])
+def get_packet_type(bit_iterator: iter) -> int:
+    binary_sequence = ''.join([b for i in range(3) for b in next(bit_iterator)])
+    return binary_to_int(binary_sequence)
 
 
 class Packet:
-    def __init__(self, binary_sequence: str):
-        self.version = get_packet_version_from_binary(binary_sequence)
-        self.type = get_packet_type_from_binary(binary_sequence)
+    def __init__(self, version: int, binary_sequence: str):
+        self.version = version
         self.bits_consumed = 6
 
 
 class LiteralValuePacket(Packet):
-    def __init__(self, binary_sequence: str):
-        super().__init__(binary_sequence)
+    def __init__(self, version: int, binary_sequence: str):
+        super().__init__(version, binary_sequence)
 
         payload = ''
         bi = self.bits_consumed
@@ -91,8 +78,8 @@ def mode0_data_size(binary_sequence: str) -> tuple:
 
 
 class OperatorPacket(Packet):
-    def __init__(self, binary_sequence: str):
-        super().__init__(binary_sequence)
+    def __init__(self, version, binary_sequence: str):
+        super().__init__(version, binary_sequence)
         mode_bit = PACKET_HEADER_END_BIT + 1
 
         self.subpacket_bit_count = 0
@@ -113,9 +100,11 @@ def create_packet(hex_sequence: str) -> Packet:
 
 
 def create_packet_from_binary(binary_sequence: str) -> Packet:
-    packet_type = get_packet_type_from_binary(binary_sequence)
+    bit_iterator = iter(binary_sequence)
+    version = get_packet_version(bit_iterator)
+    packet_type = get_packet_type(bit_iterator)
 
     if packet_type == LITERAL_VALUE_PACKET_TYPE_ID:
-        return LiteralValuePacket(binary_sequence)
+        return LiteralValuePacket(version, binary_sequence)
     else:
-        return OperatorPacket(binary_sequence)
+        return OperatorPacket(version, binary_sequence)
