@@ -90,8 +90,16 @@ def test_correct_literal_values_are_parsed_from_mode0_operator_packet(input_hex_
     assert literal_values == expected_values
 
 
-def test_nested_mode0():
-    packet = create_packet('F40087D000BF10')
+nested_mode0_test_data = [
+    ('F40087D000BF10', 1, [8]),
+    ('FC013BF0038F0AE422FF29558', 3, [5, 31, 1115])
+]
 
-    assert len(packet.subpackets) == 1
-    assert packet.subpackets[0].subpackets[0].value == 8
+
+@pytest.mark.parametrize("input_hex_sequence, expected_sub_count, expected_literal_values", nested_mode0_test_data)
+def test_nested_mode0(input_hex_sequence, expected_sub_count, expected_literal_values):
+    packet = create_packet(input_hex_sequence)
+
+    assert len(packet.subpackets[0].subpackets) == expected_sub_count
+    for i, ev in enumerate(expected_literal_values):
+        assert packet.subpackets[0].subpackets[i].value == expected_literal_values[i]
