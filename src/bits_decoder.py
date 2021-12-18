@@ -46,65 +46,59 @@ def get_packet_type(bit_iterator: iter) -> int:
 
 
 class Packet:
-    def __init__(self, version: int, binary_sequence: str):
+    def __init__(self, version: int, bit_iterator: str):
         self.version = version
-        self.bits_consumed = 6
 
 
 class LiteralValuePacket(Packet):
-    def __init__(self, version: int, binary_sequence: str):
-        super().__init__(version, binary_sequence)
+    def __init__(self, version: int, bit_iterator: str):
+        super().__init__(version, bit_iterator)
 
         payload = ''
-        bi = self.bits_consumed
-        while bi < len(binary_sequence):
-            if binary_sequence[bi] == '1':
-                payload = payload + binary_sequence[bi+1:bi+5]
-                bi += 5
-            else:
-                payload = payload + binary_sequence[bi+1:bi+5]
-                bi += 5
-                break
+        read_another = True
+        while read_another:
+            bit = next(bit_iterator)
+            bit_sequence = ''.join([b for i in range(4) for b in next(bit_iterator)])
+            payload = payload + bit_sequence
+            if bit == '0':
+                read_another = False
 
-        self.bits_consumed = bi
         self.value = binary_to_int(payload)
 
 
-def mode0_data_size(binary_sequence: str) -> tuple:
-    mode0_bit_count = 15
-    mode0_start_data_bit = 0
-    mode0_end_data_bit = mode0_start_data_bit + mode0_bit_count
-    return binary_to_int(binary_sequence[mode0_start_data_bit:mode0_end_data_bit]), mode0_end_data_bit + 1
+def mode0_data_size(bit_iterator: iter) -> int:
+    bit_sequence = ''.join([b for i in range(15) for b in next(bit_iterator)])
+
+    return binary_to_int(bit_sequence)
 
 
 class OperatorPacket(Packet):
-    def __init__(self, version, binary_sequence: str):
-        super().__init__(version, binary_sequence)
-        mode_bit = PACKET_HEADER_END_BIT + 1
+    def __init__(self, version, bit_iterator: str):
+        super().__init__(version, bit_iterator)
 
         self.subpacket_bit_count = 0
         self.subpackets = []
-        if binary_sequence[mode_bit] == '0':
-            self.subpacket_bit_count, next_bit = mode0_data_size(binary_sequence[mode_bit+1:])
-            self.bits_consumed += self.subpacket_bit_count + next_bit
-            bits_remaining = self.subpacket_bit_count
-            while bits_remaining:
-                packet = create_packet_from_binary(binary_sequence[mode_bit+next_bit:])
-                bits_remaining -= packet.bits_consumed
-                next_bit += packet.bits_consumed
-                self.subpackets.append(packet)
+        mode_bit = next(bit_iterator)
+        if mode_bit == '0':
+            self.subpacket_bit_count = mode0_data_size(bit_iterator)
+            subpacket_bit_iterator = iter(''.join([b for i in range(self.subpacket_bit_count) for b in next(bit_iterator)]))
+            while True:
+                try:
+                    packet = create_packet_from_binary(subpacket_bit_iterator)
+                    self.subpackets.append(packet)
+                except StopIteration:
+                    break
 
 
 def create_packet(hex_sequence: str) -> Packet:
-    return create_packet_from_binary(hex_to_binary(hex_sequence))
+    return create_packet_from_binary(iter(hex_to_binary(hex_sequence)))
 
 
-def create_packet_from_binary(binary_sequence: str) -> Packet:
-    bit_iterator = iter(binary_sequence)
+def create_packet_from_binary(bit_iterator: iter) -> Packet:
     version = get_packet_version(bit_iterator)
     packet_type = get_packet_type(bit_iterator)
 
     if packet_type == LITERAL_VALUE_PACKET_TYPE_ID:
-        return LiteralValuePacket(version, binary_sequence)
+        return LiteralValuePacket(version, bit_iterator)
     else:
-        return OperatorPacket(version, binary_sequence)
+        return OperatorPacket(version, bit_iterator)
