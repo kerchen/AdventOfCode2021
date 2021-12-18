@@ -1,5 +1,4 @@
 
-PACKET_HEADER_END_BIT = 5
 LITERAL_VALUE_PACKET_TYPE_ID = 4
 
 
@@ -66,10 +65,6 @@ class LiteralValuePacket(Packet):
         self.value = binary_to_int(payload)
 
 
-def mode0_data_size(bit_iterator: iter) -> int:
-    return binary_to_int(extract_bit_sequence(bit_iterator, 15))
-
-
 class OperatorPacket(Packet):
     def __init__(self, version, bit_iterator: str):
         super().__init__(version, bit_iterator)
@@ -78,7 +73,7 @@ class OperatorPacket(Packet):
         self.subpackets = []
         mode_bit = next(bit_iterator)
         if mode_bit == '0':
-            self.subpacket_bit_count = mode0_data_size(bit_iterator)
+            self.subpacket_bit_count = binary_to_int(extract_bit_sequence(bit_iterator, 15))
             subpacket_bit_iterator = iter(extract_bit_sequence(bit_iterator, self.subpacket_bit_count))
             while True:
                 try:
