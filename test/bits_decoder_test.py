@@ -120,3 +120,24 @@ def test_correct_version_sum_is_calculated(input_hex_sequence, expected_value):
     version_sum = packet.sum_versions()
 
     assert version_sum == expected_value
+
+
+decode_test_data = [
+    ('121A924', 2601),
+    ('C200B40A82', 3),
+    ('04005AC33890', 54),
+    ('880086C3E88112', 7),
+    ('CE00C43D881120', 9),
+    ('D8005AC2A8F0', 1),
+    ('F600BC2D8F', 0),
+    ('9C005AC2F8F0', 0),
+    ('9C0141080250320F1802104A08', 1)
+]
+
+
+@pytest.mark.parametrize("input_hex_sequence, expected_value", decode_test_data)
+def test_decoded_packet_is_computed_correctly(input_hex_sequence, expected_value):
+    packet = create_packet(input_hex_sequence)
+    decoded_value = packet.decode()
+
+    assert decoded_value == expected_value

@@ -1,5 +1,14 @@
+from math import prod
 
+
+SUM_PACKET_TYPE_ID = 0
+PRODUCT_PACKET_TYPE_ID = 1
+MINIMUM_PACKET_TYPE_ID = 2
+MAXIMUM_PACKET_TYPE_ID = 3
 LITERAL_VALUE_PACKET_TYPE_ID = 4
+GREATER_THAN_PACKET_TYPE_ID = 5
+LESS_THAN_PACKET_TYPE_ID = 6
+EQUALS_PACKET_TYPE_ID = 7
 
 
 def hex_to_binary(hex_str: str) -> str:
@@ -58,6 +67,9 @@ class Packet:
 
         return version_sum
 
+    def decode(self):
+        return 0
+
 
 class LiteralValuePacket(Packet):
     def __init__(self, version: int, bit_iterator: str):
@@ -72,14 +84,17 @@ class LiteralValuePacket(Packet):
 
         self.value = binary_to_int(payload)
 
+    def decode(self):
+        return self.value
+
 
 class OperatorPacket(Packet):
-    def __init__(self, version, bit_iterator: str):
+    def __init__(self, version, bit_iterator: str, operation_fn: callable):
         super().__init__(version, bit_iterator)
 
+        self.operation_fn = operation_fn
         mode_bit = next(bit_iterator)
         if mode_bit == '0':
-            subpacket_bit_count = 0
             subpacket_bit_count = binary_to_int(extract_bit_sequence(bit_iterator, 15))
             subpacket_bit_iterator = iter(extract_bit_sequence(bit_iterator, subpacket_bit_count))
             while True:
@@ -95,19 +110,45 @@ class OperatorPacket(Packet):
                 self.subpackets.append(packet)
                 subpacket_count -= 1
 
+    def decode(self):
+        subpacket_values = map(lambda p: p.decode(), self.subpackets)
+        return self.operation_fn(subpacket_values)
+
 
 def create_packet(hex_sequence: str) -> Packet:
     return create_packet_from_binary(iter(hex_to_binary(hex_sequence)))
 
 
+def less_than(items: map) -> int:
+    item_list = list(items)
+    return 1 if item_list[0] < item_list[1] else 0
+
+
+def greater_than(items: map) -> int:
+    item_list = list(items)
+    return 1 if item_list[0] > item_list[1] else 0
+
+
+def equal(items: map) -> int:
+    item_list = list(items)
+    return 1 if item_list[0] == item_list[1] else 0
+
+
 def create_packet_from_binary(bit_iterator: iter) -> Packet:
+    operator_fns = {SUM_PACKET_TYPE_ID: sum,
+                    PRODUCT_PACKET_TYPE_ID: prod,
+                    MINIMUM_PACKET_TYPE_ID: min,
+                    MAXIMUM_PACKET_TYPE_ID: max,
+                    GREATER_THAN_PACKET_TYPE_ID: greater_than,
+                    LESS_THAN_PACKET_TYPE_ID: less_than,
+                    EQUALS_PACKET_TYPE_ID: equal}
     version = get_packet_version(bit_iterator)
     packet_type = get_packet_type(bit_iterator)
 
     if packet_type == LITERAL_VALUE_PACKET_TYPE_ID:
         return LiteralValuePacket(version, bit_iterator)
     else:
-        return OperatorPacket(version, bit_iterator)
+        return OperatorPacket(version, bit_iterator, operator_fns.get(packet_type, lambda *args: None))
 
 
 def solve(input_data_file: str):
@@ -116,3 +157,4 @@ def solve(input_data_file: str):
 
         packet = create_packet(hex_sequence)
         print(f"Sum of versions: {packet.sum_versions()}")
+        print(f"Decoded packet: {packet.decode()}")
