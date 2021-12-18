@@ -49,6 +49,7 @@ def get_packet_type(bit_iterator: iter) -> int:
 class Packet:
     def __init__(self, version: int, bit_iterator: str):
         self.version = version
+        self.subpackets = []
 
 
 class LiteralValuePacket(Packet):
@@ -69,12 +70,11 @@ class OperatorPacket(Packet):
     def __init__(self, version, bit_iterator: str):
         super().__init__(version, bit_iterator)
 
-        self.subpacket_bit_count = 0
-        self.subpackets = []
+        subpacket_bit_count = 0
         mode_bit = next(bit_iterator)
         if mode_bit == '0':
-            self.subpacket_bit_count = binary_to_int(extract_bit_sequence(bit_iterator, 15))
-            subpacket_bit_iterator = iter(extract_bit_sequence(bit_iterator, self.subpacket_bit_count))
+            subpacket_bit_count = binary_to_int(extract_bit_sequence(bit_iterator, 15))
+            subpacket_bit_iterator = iter(extract_bit_sequence(bit_iterator, subpacket_bit_count))
             while True:
                 try:
                     packet = create_packet_from_binary(subpacket_bit_iterator)

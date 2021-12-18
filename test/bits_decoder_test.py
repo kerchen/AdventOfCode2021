@@ -56,22 +56,6 @@ def test_correct_literal_value_is_computed(input_hex_sequence, expected_value):
     assert literal_value == expected_value
 
 
-operator_mode0_test_data = [
-    ('E40000', 0),
-    ('F4002FC30', 11),  # 1 literal value 6
-    ('F4006FC379918', 27),  # 2 literal values 6, 147
-    ('38006F45291200', 27),  # 2 literal values 10, 21
-    ('F400C3C37991F93B00', 48)  # 3 literal values 6, 147, 864
-]
-
-
-@pytest.mark.parametrize("input_hex_sequence, expected_value", operator_mode0_test_data)
-def test_correct_bit_length_is_found_for_mode0_operator(input_hex_sequence, expected_value):
-    packet = create_packet(input_hex_sequence)
-
-    assert packet.subpacket_bit_count == expected_value
-
-
 operator_mode0_literals_test_data = [
     ('F4002FC30', [6]),
     ('F4006FC379918', [6, 147]),
@@ -108,6 +92,7 @@ def test_nested_mode0(input_hex_sequence, expected_sub_count, expected_literal_v
 operator_mode1_literals_test_data = [
     ('B6005CA10', [68]),
     ('B6015CA11CA11CA11CA11CA10', [68, 68, 68, 68, 68]),
+    ('EE00D40C823060', [1, 2, 3])
 ]
 
 
