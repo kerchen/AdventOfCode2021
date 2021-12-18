@@ -103,3 +103,20 @@ def test_nested_mode0(input_hex_sequence, expected_sub_count, expected_literal_v
     assert len(packet.subpackets[0].subpackets) == expected_sub_count
     for i, ev in enumerate(expected_literal_values):
         assert packet.subpackets[0].subpackets[i].value == expected_literal_values[i]
+
+
+operator_mode1_literals_test_data = [
+    ('B6005CA10', [68]),
+    ('B6015CA11CA11CA11CA11CA10', [68, 68, 68, 68, 68]),
+]
+
+
+@pytest.mark.parametrize("input_hex_sequence, expected_values", operator_mode1_literals_test_data)
+def test_correct_literal_values_are_parsed_from_mode1_operator_packet(input_hex_sequence, expected_values):
+    packet = create_packet(input_hex_sequence)
+    literal_values = []
+    for i, sp in enumerate(packet.subpackets):
+        literal_values.append(sp.value)
+
+    assert literal_values == expected_values
+

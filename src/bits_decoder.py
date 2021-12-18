@@ -81,6 +81,12 @@ class OperatorPacket(Packet):
                     self.subpackets.append(packet)
                 except StopIteration:
                     break
+        else:
+            subpacket_count = binary_to_int(extract_bit_sequence(bit_iterator, 11))
+            while subpacket_count:
+                packet = create_packet_from_binary(bit_iterator)
+                self.subpackets.append(packet)
+                subpacket_count -= 1
 
 
 def create_packet(hex_sequence: str) -> Packet:
