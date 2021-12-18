@@ -105,3 +105,18 @@ def test_correct_literal_values_are_parsed_from_mode1_operator_packet(input_hex_
 
     assert literal_values == expected_values
 
+
+version_sum_test_data = [
+    ('8A004A801A8002F478', 16),
+    ('620080001611562C8802118E34', 12),
+    ('C0015000016115A2E0802F182340', 23),
+    ('A0016C880162017C3686B18A3D4780', 31)
+]
+
+
+@pytest.mark.parametrize("input_hex_sequence, expected_value", version_sum_test_data)
+def test_correct_version_sum_is_calculated(input_hex_sequence, expected_value):
+    packet = create_packet(input_hex_sequence)
+    version_sum = packet.sum_versions()
+
+    assert version_sum == expected_value

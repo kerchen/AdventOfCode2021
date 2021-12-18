@@ -51,6 +51,13 @@ class Packet:
         self.version = version
         self.subpackets = []
 
+    def sum_versions(self):
+        version_sum = self.version
+        for p in self.subpackets:
+            version_sum += p.sum_versions()
+
+        return version_sum
+
 
 class LiteralValuePacket(Packet):
     def __init__(self, version: int, bit_iterator: str):
@@ -70,9 +77,9 @@ class OperatorPacket(Packet):
     def __init__(self, version, bit_iterator: str):
         super().__init__(version, bit_iterator)
 
-        subpacket_bit_count = 0
         mode_bit = next(bit_iterator)
         if mode_bit == '0':
+            subpacket_bit_count = 0
             subpacket_bit_count = binary_to_int(extract_bit_sequence(bit_iterator, 15))
             subpacket_bit_iterator = iter(extract_bit_sequence(bit_iterator, subpacket_bit_count))
             while True:
@@ -101,3 +108,11 @@ def create_packet_from_binary(bit_iterator: iter) -> Packet:
         return LiteralValuePacket(version, bit_iterator)
     else:
         return OperatorPacket(version, bit_iterator)
+
+
+def solve(input_data_file: str):
+    with open(input_data_file, "r") as dfile:
+        hex_sequence = dfile.read()
+
+        packet = create_packet(hex_sequence)
+        print(f"Sum of versions: {packet.sum_versions()}")
