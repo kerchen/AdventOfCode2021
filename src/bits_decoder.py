@@ -35,14 +35,16 @@ def binary_to_int(binary_sequence: str) -> int:
     return return_value
 
 
+def extract_bit_sequence(bit_iterator: iter, count: int) -> str:
+    return ''.join([b for i in range(count) for b in next(bit_iterator)])
+
+
 def get_packet_version(bit_iterator: iter) -> int:
-    binary_sequence = ''.join([b for i in range(3) for b in next(bit_iterator)])
-    return binary_to_int(binary_sequence)
+    return binary_to_int(extract_bit_sequence(bit_iterator, 3))
 
 
 def get_packet_type(bit_iterator: iter) -> int:
-    binary_sequence = ''.join([b for i in range(3) for b in next(bit_iterator)])
-    return binary_to_int(binary_sequence)
+    return binary_to_int(extract_bit_sequence(bit_iterator, 3))
 
 
 class Packet:
@@ -55,21 +57,17 @@ class LiteralValuePacket(Packet):
         super().__init__(version, bit_iterator)
 
         payload = ''
-        read_another = True
-        while read_another:
+        while True:
             bit = next(bit_iterator)
-            bit_sequence = ''.join([b for i in range(4) for b in next(bit_iterator)])
-            payload = payload + bit_sequence
+            payload = payload + extract_bit_sequence(bit_iterator, 4)
             if bit == '0':
-                read_another = False
+                break
 
         self.value = binary_to_int(payload)
 
 
 def mode0_data_size(bit_iterator: iter) -> int:
-    bit_sequence = ''.join([b for i in range(15) for b in next(bit_iterator)])
-
-    return binary_to_int(bit_sequence)
+    return binary_to_int(extract_bit_sequence(bit_iterator, 15))
 
 
 class OperatorPacket(Packet):
@@ -81,7 +79,7 @@ class OperatorPacket(Packet):
         mode_bit = next(bit_iterator)
         if mode_bit == '0':
             self.subpacket_bit_count = mode0_data_size(bit_iterator)
-            subpacket_bit_iterator = iter(''.join([b for i in range(self.subpacket_bit_count) for b in next(bit_iterator)]))
+            subpacket_bit_iterator = iter(extract_bit_sequence(bit_iterator, self.subpacket_bit_count))
             while True:
                 try:
                     packet = create_packet_from_binary(subpacket_bit_iterator)
