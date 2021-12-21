@@ -128,3 +128,10 @@ def solve(input_data_file: str):
         first_gen_image = image.apply_algorithm(algorithm)
         second_gen_image = first_gen_image.apply_algorithm(algorithm)
         print(f"Number of pixels on in second generation: {Counter(second_gen_image.lit_pixels.values())[True]}")
+        last_gen_image = second_gen_image
+        for i in range(48):
+            next_gen = last_gen_image.apply_algorithm(algorithm)
+            last_gen_image = next_gen
+        print(f"Number of pixels on in 50th generation: {Counter(last_gen_image.lit_pixels.values())[True]}")
+
+
