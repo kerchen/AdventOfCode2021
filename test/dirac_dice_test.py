@@ -54,6 +54,8 @@ def test_game_score_is_correct_after_n_turns(turn_count, starting_positions, exp
 
 game_ends_at_target_points_test_data = [
     (100, [6, 4], [106, 91]),
+    (990, [4, 8], [990, 742]),
+    (1000, [4, 8], [1000, 745]),
 ]
 
 

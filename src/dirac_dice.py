@@ -2,12 +2,14 @@
 
 class DeterministicDie:
     def __init__(self, sides=100):
+        self.next_roll = 0
         self.roll_count = 0
         self.sides = sides
 
     def roll(self) -> int:
-        this_roll = self.roll_count + 1
-        self.roll_count = this_roll % self.sides
+        self.roll_count += 1
+        this_roll = self.next_roll + 1
+        self.next_roll = this_roll % self.sides
         return this_roll
 
 
@@ -32,3 +34,14 @@ class DiracDiceGame:
                     return True
 
         return False
+
+
+def solve(starting_positions: list[int], target_score):
+    game = DiracDiceGame(starting_positions, target_score)
+    while True:
+        if game.play_turns(1):
+            break
+    print(f"Game ended with p1 score {game.player_scores[0]} p2 score {game.player_scores[1]}")
+    losing_score = min(game.player_scores)
+    print(f"Losing score {losing_score}   # of dice rolls {game.die.roll_count}")
+    print(f"Product: {losing_score * game.die.roll_count}")
