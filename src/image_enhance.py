@@ -53,13 +53,17 @@ class Image:
 
     def apply_algorithm(self, algorithm: str):
         new_image = Image([])
+        already_computed = set()
 
         for k in sorted(self.lit_pixels):
             for y in range(k.y-1, k.y+2):
                 for x in range(k.x-1, k.x+2):
-                    index = self.algorithm_index(Point(x, y))
-                    if algorithm[index] == '#':
-                        new_image.lit_pixels[Point(x, y)] = True
+                    pt = Point(x, y)
+                    if pt not in already_computed:
+                        already_computed.add(pt)
+                        index = self.algorithm_index(pt)
+                        if algorithm[index] == '#':
+                            new_image.lit_pixels[pt] = True
 
         return new_image
 
@@ -69,7 +73,9 @@ def solve(input_data_file: str):
         raw_input = dfile.read()
         algorithm, image_data = parse_input(raw_input)
         image = Image(image_data)
+        print(f"Number of pixels in original image: {len(image.lit_pixels)}")
         first_gen_image = image.apply_algorithm(algorithm)
+        print(f"Number of pixels in first generation: {len(first_gen_image.lit_pixels)}")
         second_gen_image = first_gen_image.apply_algorithm(algorithm)
 
         print(f"Number of pixels on in second generation: {len(second_gen_image.lit_pixels)}")
