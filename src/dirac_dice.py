@@ -1,3 +1,4 @@
+from datetime import datetime
 
 
 class DeterministicDie:
@@ -11,6 +12,42 @@ class DeterministicDie:
         this_roll = self.next_roll + 1
         self.next_roll = this_roll % self.sides
         return this_roll
+
+
+class ConstantDie:
+    def __init__(self, value: int):
+        self.value = value
+        self.roll_count = 0
+
+    def roll(self) -> int:
+        self.roll_count += 1
+        return self.value
+
+
+class DiracDie:
+    def __init__(self, max_depth, depth: int):
+        self.depth = depth
+        self.max_depth = max_depth
+        if depth < max_depth:
+            self.subdie = DiracDie(max_depth, depth+1)
+        else:
+            self.subdie = None
+        self.next_roll = 1
+
+    def next_universe(self) -> bool:
+        if self.depth == self.max_depth or self.subdie.next_universe():
+            self.next_roll += 1
+            if self.next_roll > 3:
+                self.next_roll = 1
+                return True
+        return False
+
+    def roll(self, roll_number) -> int:
+        if self.depth == roll_number:
+            return self.next_roll
+        if not self.subdie:
+            raise Exception(f"uh oh! Need more than {roll_number} roll depth")
+        return self.subdie.roll(roll_number)
 
 
 class DiracDiceGame:
@@ -36,8 +73,35 @@ class DiracDiceGame:
         return False
 
 
-def solve(starting_positions: list[int], target_score):
+class MultiverseDiracDiceGame:
+    def __init__(self, starting_positions: list[int], target_score: int, die: DiracDie):
+        self.player_positions = starting_positions
+        self.player_scores = [0] * len(starting_positions)
+        self.die = die
+        self.target_score = target_score
+        self.total_rolls = 0
+
+    def score(self, player: int) -> int:
+        return self.player_scores[player-1]
+
+    def play_turns(self, turn_count) -> bool:
+        for t in range(turn_count):
+            for i, p in enumerate(self.player_positions):
+                for r in range(3):
+                    self.total_rolls += 1
+                    p += self.die.roll(self.total_rolls)
+                self.player_positions[i] = ((p - 1) % 10) + 1
+                self.player_scores[i] += self.player_positions[i]
+                if self.player_scores[i] >= self.target_score:
+                    self.die.next_universe()
+                    return True
+
+        return False
+
+
+def solve(starting_positions: list[int], target_score, die):
     game = DiracDiceGame(starting_positions, target_score)
+    game.die = die
     while True:
         if game.play_turns(1):
             break
@@ -45,3 +109,34 @@ def solve(starting_positions: list[int], target_score):
     losing_score = min(game.player_scores)
     print(f"Losing score {losing_score}   # of dice rolls {game.die.roll_count}")
     print(f"Product: {losing_score * game.die.roll_count}")
+
+
+def solve_p2(starting_positions: list[int], target_score):
+    dd = DiracDie(30, 1)
+    game = MultiverseDiracDiceGame(starting_positions, target_score, dd)
+    p1_wins = 0
+    p2_wins = 0
+    perf_markers = [1E3, 1E6, 1E7, 1E8, 1E9, 1E12, 1E15]
+    start_time = datetime.now()
+    while game.die.next_roll < 4:
+        if game.play_turns(1):
+            if game.player_scores[0] > game.player_scores[1]:
+                p1_wins += 1
+            else:
+                p2_wins += 1
+            for n in perf_markers:
+                if p1_wins + p2_wins == int(n):
+                    dt = datetime.now() - start_time
+                    rate = n / dt.total_seconds()
+                    ttc = rate / 1E15
+                    print(f"{int(n)} games played at {datetime.now() - start_time}; rate = {rate} games/sec")
+                    print(f"Est. time to completion: {ttc} sec")
+
+            dd = game.die
+            game = MultiverseDiracDiceGame(starting_positions, 21, dd)
+
+    print(f"Player 1 wins: {p1_wins}\nPlayer 2 wins: {p2_wins}")
+
+
+if __name__ == "__main__":
+    solve_p2([4, 8], 4)

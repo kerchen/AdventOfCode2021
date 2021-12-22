@@ -1,6 +1,7 @@
 import pytest
+from math import pow
 
-from dirac_dice import DeterministicDie, DiracDiceGame
+from dirac_dice import DeterministicDie, DiracDiceGame, DiracDie
 
 
 dice_roll_test_data = [
@@ -72,3 +73,60 @@ def test_game_ends_at_target_points(target_score, starting_positions, expected_s
 
     assert player1_score == expected_scores[0]
     assert player2_score == expected_scores[1]
+
+
+dirac_die_test_data = [
+    (1, [1, 2, 3]),
+    (2, [1, 1, 1, 2, 1, 3, 2, 1, 2, 2, 2, 3, 3, 1, 3, 2, 3, 3]),
+    (3, [1, 1, 1, 1, 1, 2, 1, 1, 3,
+         1, 2, 1, 1, 2, 2, 1, 2, 3,
+         1, 3, 1, 1, 3, 2, 1, 3, 3,
+         2, 1, 1, 2, 1, 2, 2, 1, 3,
+         2, 2, 1, 2, 2, 2, 2, 2, 3,
+         2, 3, 1, 2, 3, 2, 2, 3, 3,
+         3, 1, 1, 3, 1, 2, 3, 1, 3,
+         3, 2, 1, 3, 2, 2, 3, 2, 3,
+         3, 3, 1, 3, 3, 2, 3, 3, 3]),
+]
+
+
+@pytest.mark.parametrize('max_roll_count, expected_sequence', dirac_die_test_data)
+def test_dirac_die_returns_correct_sequence(max_roll_count, expected_sequence):
+    dd = DiracDie(max_roll_count, 1)
+
+    sequence = []
+    for paths in range(int(pow(3, max_roll_count))):
+        for i in range(max_roll_count):
+            sequence.append(dd.roll(i+1))
+        dd.next_universe()
+
+    assert sequence == expected_sequence
+
+
+dirac_die_early_out_test_data = [
+    (3, 2, [1, 1, 1, 1, 1, 1,
+            1, 2, 1, 2, 1, 2,
+            1, 3, 1, 3, 1, 3,
+            2, 1, 2, 1, 2, 1,
+            2, 2, 2, 2, 2, 2,
+            2, 3, 2, 3, 2, 3,
+            3, 1, 3, 1, 3, 1,
+            3, 2, 3, 2, 3, 2,
+            3, 3, 3, 3, 3, 3]),
+]
+
+
+@pytest.mark.parametrize('max_roll_count, roll_count, expected_sequence', dirac_die_early_out_test_data)
+def test_dirac_die_returns_correct_sequence_when_game_ends_early(max_roll_count, roll_count, expected_sequence):
+    dd = DiracDie(max_roll_count, 1)
+
+    sequence = []
+    for paths in range(int(pow(3, max_roll_count))):
+        for i in range(roll_count):
+            sequence.append(dd.roll(i+1))
+        dd.next_universe()
+
+    print("\nComputed vs expected:")
+    print(sequence)
+    print(expected_sequence)
+    assert sequence == expected_sequence
