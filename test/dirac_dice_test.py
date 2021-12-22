@@ -98,21 +98,21 @@ def test_dirac_die_returns_correct_sequence(max_roll_count, expected_sequence):
     for paths in range(int(pow(3, max_roll_count))):
         for i in range(max_roll_count):
             sequence.append(dd.roll(i+1))
-        dd.next_universe()
+        dd.next_universe(max_roll_count)
 
     assert sequence == expected_sequence
 
 
 dirac_die_early_out_test_data = [
-    (3, 2, [1, 1, 1, 1, 1, 1,
-            1, 2, 1, 2, 1, 2,
-            1, 3, 1, 3, 1, 3,
-            2, 1, 2, 1, 2, 1,
-            2, 2, 2, 2, 2, 2,
-            2, 3, 2, 3, 2, 3,
-            3, 1, 3, 1, 3, 1,
-            3, 2, 3, 2, 3, 2,
-            3, 3, 3, 3, 3, 3]),
+    (3, 2, [1, 1,
+            1, 2,
+            1, 3,
+            2, 1,
+            2, 2,
+            2, 3,
+            3, 1,
+            3, 2,
+            3, 3]),
 ]
 
 
@@ -124,7 +124,9 @@ def test_dirac_die_returns_correct_sequence_when_game_ends_early(max_roll_count,
     for paths in range(int(pow(3, max_roll_count))):
         for i in range(roll_count):
             sequence.append(dd.roll(i+1))
-        dd.next_universe()
+        dd.next_universe(roll_count)
+        if dd.is_exhausted():
+            break
 
     print("\nComputed vs expected:")
     print(sequence)

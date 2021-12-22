@@ -1,5 +1,5 @@
 from datetime import datetime
-
+from math import pow, log10, floor
 
 class DeterministicDie:
     def __init__(self, sides=100):
@@ -34,8 +34,22 @@ class DiracDie:
             self.subdie = None
         self.next_roll = 1
 
-    def next_universe(self) -> bool:
-        if self.depth == self.max_depth or self.subdie.next_universe():
+    def is_exhausted(self):
+        if not self.subdie:
+            return self.next_roll == 1
+
+        return self.next_roll == 1 and self.subdie.is_exhausted()
+
+    def next_universe(self, prune_depth: int) -> bool:
+        if self.depth > prune_depth:
+            self.next_roll = 1
+            if self.subdie:
+                self.subdie.next_universe(prune_depth)
+            return True
+        subdie_pruned = False
+        if self.subdie:
+            subdie_pruned = self.subdie.next_universe(prune_depth)
+        if self.depth == prune_depth or subdie_pruned:
             self.next_roll += 1
             if self.next_roll > 3:
                 self.next_roll = 1
@@ -84,19 +98,18 @@ class MultiverseDiracDiceGame:
     def score(self, player: int) -> int:
         return self.player_scores[player-1]
 
-    def play_turns(self, turn_count) -> bool:
-        for t in range(turn_count):
-            for i, p in enumerate(self.player_positions):
-                for r in range(3):
-                    self.total_rolls += 1
-                    p += self.die.roll(self.total_rolls)
-                self.player_positions[i] = ((p - 1) % 10) + 1
-                self.player_scores[i] += self.player_positions[i]
-                if self.player_scores[i] >= self.target_score:
-                    self.die.next_universe()
-                    return True
+    def play_turn(self) -> tuple:
+        for i, p in enumerate(self.player_positions):
+            for r in range(3):
+                self.total_rolls += 1
+                p += self.die.roll(self.total_rolls)
+            self.player_positions[i] = ((p - 1) % 10) + 1
+            self.player_scores[i] += self.player_positions[i]
+            if self.player_scores[i] >= self.target_score:
+                self.die.next_universe(self.total_rolls)
+                return True, i
 
-        return False
+        return False, 0
 
 
 def solve(starting_positions: list[int], target_score, die):
@@ -111,32 +124,43 @@ def solve(starting_positions: list[int], target_score, die):
     print(f"Product: {losing_score * game.die.roll_count}")
 
 
-def solve_p2(starting_positions: list[int], target_score):
-    dd = DiracDie(30, 1)
+def solve_p2(starting_positions: list[int], max_rolls, target_score):
+    dd = DiracDie(max_rolls, 1)
     game = MultiverseDiracDiceGame(starting_positions, target_score, dd)
     p1_wins = 0
     p2_wins = 0
-    perf_markers = [1E3, 1E6, 1E7, 1E8, 1E9, 1E12, 1E15]
     start_time = datetime.now()
-    while game.die.next_roll < 4:
-        if game.play_turns(1):
-            if game.player_scores[0] > game.player_scores[1]:
+    games_played = 0
+    game_limit = pow(3, max_rolls)
+    perf_markers = [x for x in range(1, floor(log10(game_limit)))]
+    while games_played < game_limit:
+        won, winner = game.play_turn()
+        if won:
+            games_played += 1
+            if winner == 0:
                 p1_wins += 1
             else:
                 p2_wins += 1
+
             for n in perf_markers:
-                if p1_wins + p2_wins == int(n):
+                marker = int(pow(10, n))
+                if games_played == marker:
                     dt = datetime.now() - start_time
-                    rate = n / dt.total_seconds()
-                    ttc = rate / 1E15
-                    print(f"{int(n)} games played at {datetime.now() - start_time}; rate = {rate} games/sec")
+                    elapsed_seconds = dt.total_seconds()
+                    if elapsed_seconds == 0:
+                        elapsed_seconds = 0.0001
+                    rate = marker / elapsed_seconds
+                    ttc = rate / game_limit
+                    print(f"{games_played} games played at {datetime.now() - start_time}; rate = {rate} games/sec")
                     print(f"Est. time to completion: {ttc} sec")
 
             dd = game.die
-            game = MultiverseDiracDiceGame(starting_positions, 21, dd)
+            if dd.is_exhausted():
+                break
+            game = MultiverseDiracDiceGame(starting_positions, target_score, dd)
 
     print(f"Player 1 wins: {p1_wins}\nPlayer 2 wins: {p2_wins}")
 
 
 if __name__ == "__main__":
-    solve_p2([4, 8], 4)
+    solve_p2([4, 8], 40, 21)
